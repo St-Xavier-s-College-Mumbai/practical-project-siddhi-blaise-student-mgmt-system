@@ -15,11 +15,15 @@ void deleteStudent(struct Student students[], int *count);
 void viewStudents(struct Student students[], int count);
 void searchStudent(struct Student students[], int count);
 void sortStudentsByName(struct Student students[], int count);
+void loadStudentsFromFile(struct Student students[], int *count);
+void saveStudentsToFile(struct Student students[], int count);
 
 int main() {
     struct Student students[100];  // Array to store up to 100 students
     int count = 0;  // Number of students
     int choice;
+
+    loadStudentsFromFile(students, &count); // Load students from file at startup
 
     do {
         printf("\n*** Student Management System ***\n");
@@ -54,6 +58,7 @@ int main() {
                 break;
             case 7:
                 printf("Exiting program...\n");
+                saveStudentsToFile(students, count); // Save students to file on exit
                 break;
             default:
                 printf("Invalid choice! Please try again.\n");
@@ -61,6 +66,28 @@ int main() {
     } while (choice != 7);
 
     return 0;
+}
+
+// Function to load students from file
+void loadStudentsFromFile(struct Student students[], int *count) {
+    FILE *file = fopen("students.txt", "r");
+    if (file) {
+        while (fscanf(file, "%d %[^\n]s %f", &students[*count].roll_no, students[*count].name, &students[*count].marks) == 3) {
+            (*count)++;
+        }
+        fclose(file);
+    }
+}
+
+// Function to save students to file
+void saveStudentsToFile(struct Student students[], int count) {
+    FILE *file = fopen("students.txt", "w");
+    if (file) {
+        for (int i = 0; i < count; i++) {
+            fprintf(file, "%d %s %.2f\n", students[i].roll_no, students[i].name, students[i].marks);
+        }
+        fclose(file);
+    }
 }
 
 // Function to add a student
@@ -72,6 +99,7 @@ void addStudent(struct Student students[], int *count) {
     printf("Enter marks: ");
     scanf("%f", &students[*count].marks);
     (*count)++;
+    saveStudentsToFile(students, *count); // Save after adding
     printf("Student added successfully!\n");
 }
 
@@ -88,6 +116,7 @@ void updateStudent(struct Student students[], int count) {
             scanf(" %[^\n]s", students[i].name);
             printf("Enter new marks: ");
             scanf("%f", &students[i].marks);
+            saveStudentsToFile(students, count); // Save after updating
             printf("Student details updated successfully!\n");
             break;
         }
@@ -111,6 +140,7 @@ void deleteStudent(struct Student students[], int *count) {
                 students[j] = students[j + 1];
             }
             (*count)--;
+            saveStudentsToFile(students, *count); // Save after deleting
             printf("Student deleted successfully!\n");
             break;
         }
